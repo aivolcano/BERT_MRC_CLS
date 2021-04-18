@@ -3,7 +3,7 @@
 * 推荐系统中最重要的特征是ID类特征，它组成的用户行为句子特征依靠NLP的技术，NLP从最开始end2end到预训练模型提取特征的技术路线为推荐系统提高了可参考的技术路线，2021年推荐系统领域内的模型逐步向预训练BERT靠拢，以求能提取更有效的提取ID组成的用户行为句子特征
 
 ### 核心技术
-TextRank召回长文本中top-3个关键句；对LSTM使用残差网络；为BERT设置损失函数bert_loss
+BERT隐藏层加权融合，召回段落、召回关键句 等等
 
 ### 特征工程
 * 长文本处理：
@@ -33,15 +33,24 @@ BERT的动态融合作为模型embedding的成绩会优于BERT最后一层向量
 下游任务使用LSTM/GRU/Transformer(3选1) 等结构对 BERT动态融合结果 进行特征提取时，神经网络发生退化问题，模型没有欠拟合。因此我模拟ResNet中的残差结构，对LSTM/GRU/Transformer进行短接
 F1、accracy等指标由原来的0.97 0.95来回跳 变为 稳定在0.96，由于使用残差网络，模型参数量下降了200-300个。
 
+![image](https://user-images.githubusercontent.com/68730894/115149174-72b57d00-a095-11eb-9b2a-68f128c542b2.png)
+
 为了取消维度不一致影响残差网络使用率低的问题，作者开发了不受维度限制的残差模块。
 
 原理是：回到ResNet的核心，非线性激活函数的存在导致特征变化不可逆，因此造成模型退化的根本原因是非线性激活函数。因此F(x)= f(x) + x 可以理解为f(x)为非线性特征，x为线性特征，
+
+![image](https://user-images.githubusercontent.com/68730894/115149195-9678c300-a095-11eb-8a53-e005612c6e7e.png)
 
 该残差模块不受维度相等的条件限制
 
 时空复杂度为0的写法：遇到维度不相等，可以直接用`nn.Linear(), tf.keras.layers.Dense()`让维度一致。然后再对位相加即可。
 
 有时空复杂度的写法：向量不对位相加，直接拼接`torch.cat([vector1, vector2],dim=-1), tf.concat([vector1, vector2], axis=-1) tf.keras.layers.concatation()`
+
+![image](https://user-images.githubusercontent.com/68730894/115149220-b0b2a100-a095-11eb-9dea-f38c5089964b.png)
+
+![image](https://user-images.githubusercontent.com/68730894/115149184-88c33d80-a095-11eb-94be-fdefcb3f6d6d.png)
+
 
 原因是：BERT的12层向量融合完成很好的提取了特征，这种情况复杂的模型反而效果会减弱。这在推荐系统中很常见，特征工程之后用个逻辑回归LR就能解决问题，可能对于LR来说，它只需要发挥自己的记忆能力，把特征工程整理出来的情况都记录在自己的评分卡中，辅以查表和相法就可完成任务。
 
