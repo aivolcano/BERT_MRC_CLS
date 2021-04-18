@@ -1,19 +1,15 @@
 ### 任务目标
 * 囊括NLP领域的最新paper中提到的模型, 作者开发该框架，对于新的paper，只需要看model.py就可以融入该框架，并且可以考虑迁移到推荐系统中使用
 * 推荐系统中最重要的特征是ID类特征，它组成的用户行为句子特征依靠NLP的技术，NLP从最开始end2end到预训练模型提取特征的技术路线为推荐系统提高了可参考的技术路线，2021年推荐系统领域内的模型逐步向预训练BERT靠拢，以求能提取更有效的提取ID组成的用户行为句子特征
+* 该框架已经包括语义匹配、文本分类、阅读理解3个框架，未来继续增加文本生产和命名实体识别2部分，这样，NLP的框架内容基本就已经囊括了
 
 ### 核心技术
 BERT隐藏层加权融合，召回段落、召回关键句 等等
 
 ### 特征工程
-* 长文本处理：
-使用TextRank召回top-3个关键句以代表整篇新闻。
-
-TextRank算法是PageRank的改进，将每个句子视为一个顶点，句子之间的连接视为边，建立一张图，通过计算边的值得到权重进而召回top-k个关键句。
-
-该任务中，新闻的内容呈现规律是开头和结尾是点睛之笔，因此我们截取开头和结尾召回核心内容：前128个字 和 后 382个字。
-
-2种召回方法在该任务中结果相差不大，但是使用TextRank召回top-k个关键句则更具泛化性。
+* 召回技术
+    * TextRank长文本召回关键句，
+    * BM25算法：跨文档召回top-k个含有正确答案的段落
 
 * Pooling：BERT 12层隐藏层的向量进行加权
 
@@ -34,38 +30,15 @@ BERT的动态融合作为模型embedding的成绩会优于BERT最后一层向量
 * 使用残差网络解决BERT下游任务模型退化问题
 
 下游任务使用LSTM/GRU/Transformer(3选1) 等结构对 BERT动态融合结果 进行特征提取时，神经网络发生退化问题，模型没有欠拟合。因此我模拟ResNet中的残差结构，对LSTM/GRU/Transformer进行短接
-F1、accracy等指标由原来的0.97 0.95来回跳 变为 稳定在0.96，由于使用残差网络，模型参数量下降了200-300个。
+。由于使用残差网络，模型参数量下降了200-300个。
 
 ![image](https://user-images.githubusercontent.com/68730894/115149184-88c33d80-a095-11eb-94be-fdefcb3f6d6d.png)
 
+出现退化原因可能是：BERT的12层向量融合完成很好的提取了特征，这种情况复杂的模型反而效果会减弱。这在推荐系统中很常见，特征工程之后用个逻辑回归LR就能解决问题，可能对于LR来说，它只需要发挥自己的记忆能力，把特征工程整理出来的情况都记录在自己的评分卡中，辅以查表和相法就可完成任务。
 
-为了取消维度不一致影响残差网络使用率低的问题，作者开发了不受维度限制的残差模块。
+** 为了解决维度不一致影响残差网络使用率低的问题，作者开发了不受维度限制的残差模块。 **
 
-原理是：回到ResNet的核心，非线性激活函数的存在导致特征变化不可逆，因此造成模型退化的根本原因是非线性激活函数。因此F(x)= f(x) + x 可以理解为f(x)为非线性特征，x为线性特征，
-
-![image](https://user-images.githubusercontent.com/68730894/115149195-9678c300-a095-11eb-8a53-e005612c6e7e.png)
-
-该残差模块不受维度相等的条件限制
-
-时空复杂度为0的写法：遇到维度不相等，可以直接用`nn.Linear(), tf.keras.layers.Dense()`让维度一致。然后再对位相加即可。
-
-有时空复杂度的写法：向量不对位相加，直接拼接`torch.cat([vector1, vector2],dim=-1), tf.concat([vector1, vector2], axis=-1) tf.keras.layers.concatation()`
-
-![image](https://user-images.githubusercontent.com/68730894/115149220-b0b2a100-a095-11eb-9dea-f38c5089964b.png)
-
-
-
-原因是：BERT的12层向量融合完成很好的提取了特征，这种情况复杂的模型反而效果会减弱。这在推荐系统中很常见，特征工程之后用个逻辑回归LR就能解决问题，可能对于LR来说，它只需要发挥自己的记忆能力，把特征工程整理出来的情况都记录在自己的评分卡中，辅以查表和相法就可完成任务。
-
-### 结果
-动态融合BERT收敛速度比原始BERT快2-3个epoch，且模型也更能学明白。
-
-### 可改进的点
-BERT模型动态融合需要BERT预训练模型已经很完美，因此可以使用我们该任务的语料喂给开源的预训练模型再训练20个epoch。
-[代码跑通，没有gpu还没跑出结果]BERT是无监督学习方式，该任务是文本分类，因此我们可以为BERT单独增加损失函数，相当于期中考试。具体做法是BERT最后一层的输出（也就是原始BERT）使用LR计算得到pre_label，与true_label计算得到损失
-
-核心代码：
-* LSTM的残差连接
+LSTM的残差连接
 ```python
 class ResidualWrapper4RNN(nn.Module):
     def __init__(self, model):
@@ -82,45 +55,26 @@ self.bilstm = ResidualWrapper4RNN(nn.Sequential(
 
 result = self.bilstm(bert_ouput)
 ```
-* 召回长文本的关键句
 
-人工规则：标题 + 结论 = 一篇新闻文本
-```python 
-# 提取核心内容： 标题 + 结论 = 一篇新闻文本
-def merge_text(text):
-    if len(text) < 512:
-        return text
-    else:
-        return text[:128] + text[-382:]
-train_df['sentence'] = train_df['text'].apply(merge_text)
-dev_df['sentence'] = dev_df['text'].apply(merge_text)
-```
-TextRank算法召回top-k关键句
-```python 
-# TextRank召回top-k个核心句子
-# !pip install textrank4zh
-from textrank4zh import TextRank4Sentence
-def key_text(text):
-    tr4s = TextRank4Sentence()
-    tr4s.analyze(text=text, lower=True, source='all_filters')
-    import_sentence = []
-    for item in tr4s.get_key_sentences(num=3):  # sentence_num是生成关键句的个数
-        # index是语句在文本中位置，weight表示权重
-        # print('item.index, item.weight, item.sentence',item.index, item.weight, item.sentence)
-        # self.import_sentence.append(str(item.index) + ' ' +item.sentence)
-        import_sentence.append(item.sentence)
-    # key_sentence = [i.sentence for i in tr4s.get_key_sentences(num=3)] # num生成关键句的个数
-    # 核心内容是 标题 + top-3文本本体关键句
-    key_sentences = import_sentence[0][2:] + import_sentence[1][2:] + import_sentence[2][2:]
-    # 过长文本截断
-    if len(key_sentences) < 512:
-        return key_sentences
-    else:
-        return key_sentences[:512]
+原理是：回到ResNet的核心，非线性激活函数的存在导致特征变化不可逆，因此造成模型退化的根本原因是非线性激活函数。因此F(x)= f(x) + x 可以理解为f(x)为非线性特征，x为线性特征，
 
-train_df['sentence'] = train_df['text'].apply(key_text)
-dev_df['sentence'] = dev_df['text'].apply(key_text)
-```
+![image](https://user-images.githubusercontent.com/68730894/115149195-9678c300-a095-11eb-8a53-e005612c6e7e.png)
+
+该残差模块不受维度相等的条件限制
+
+时空复杂度为0的写法：遇到维度不相等，可以直接用`nn.Linear(), tf.keras.layers.Dense()`让维度一致。然后再对位相加即可。
+
+有时空复杂度的写法：向量不对位相加，直接拼接`torch.cat([vector1, vector2],dim=-1), tf.concat([vector1, vector2], axis=-1) tf.keras.layers.concatation()`
+
+![image](https://user-images.githubusercontent.com/68730894/115149220-b0b2a100-a095-11eb-9dea-f38c5089964b.png)
+
+
+### 可改进的点
+BERT模型动态融合需要BERT预训练模型已经很完美，因此可以使用我们该任务的语料喂给开源的预训练模型再训练20个epoch。
+
+BERT Fine_tune微调依靠BERT自身已经能很好的提取特征，实际上，使用BERT时，经常约到loss很小，但是总感觉模型没有学明白的问题，因此，作者考虑为BERT增加有监督学习的loss：
+[代码跑通，没有gpu还没跑出结果]BERT是无监督学习方式，该任务是文本分类，因此我们可以为BERT单独增加损失函数，相当于期中考试。具体做法是BERT最后一层的输出（也就是原始BERT）使用LR计算得到pre_label，与true_label计算得到损失
+
 
 * 修改loss：为bert增加辅助损失函数
 ```python
