@@ -11,12 +11,15 @@
 * Step2，出现在一个窗口（window）中的词形成一条边
 * Step3，基于PageRank原理进行迭代（20-30次）
 * Step4，顶点（词）按照分数进行排序，可以筛选指定的词性
- 
+
+![image](https://user-images.githubusercontent.com/68730894/115322192-0e3f0e80-a1b8-11eb-9919-a2bd6b5a5688.png)
+
 注：W_ij: 单词i和j之间的权重
 节点的权重不仅依赖于入度，还依赖于入度节点的权重
 
 TextRank中，windows=3，意味着前后3个句子作为顶点，两两使用边连接起来，表示句子间的关系强度。
 
+![image](https://user-images.githubusercontent.com/68730894/115322208-18f9a380-a1b8-11eb-9ece-5f84c22edf15.png)
 
 NLP的长文本解决方案有（以BERT为例，BERT最长只能输入512个字）
 * 人工规则提取核心内容：前128个字 和 后382个字，适用于新闻、文章
