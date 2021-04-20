@@ -12,6 +12,11 @@ question: 广西网上捐赠渠道如何登录？
 answer: 微信登录
 ```
 
+### 数据集
+https://www.datafountain.cn/competitions/424/datasets
+![image](https://user-images.githubusercontent.com/68730894/115325626-8ad4eb80-a1be-11eb-81c2-e56ac9c0488f.png)
+
+
 ### 核心技术
 BM25从多个文档中召回top-k个包含正确答案，全局负采样和局部负采样构建负样本；loss函数权重调节；设置标签不均衡来加大正样本学习难度；
 
@@ -190,6 +195,8 @@ self.bilstm = ResidualWrapper4RNN(nn.Sequential(
 
 result = self.bilstm(bert_ouput)
 ```
+
+
 
 运行方案顺序
 * preprocess/final_para_result.py
