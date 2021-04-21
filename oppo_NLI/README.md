@@ -1,6 +1,6 @@
 
 
-这场比赛很卷，前排打得太激烈了。可能是春节后启动较早的比赛，大家都去尝试它。
+这场比赛很卷，前排打得太激烈了。可能是春节后启动较早的比赛，大家都去尝试它。（前1%，66/5345）
 
 
 比赛是脱敏数据，苏建林给出了vocab对齐的思路，可以直接使用现成的预训练模型搞，参考链接https://kexue.fm/archives/8213
@@ -18,5 +18,8 @@ Loss修改：
 这场比赛是二分类任务，因此使用机器学习模型也是可以的，这需要完全依赖于特征工程，作者也尝试做了一些特征工程：query1 和 query2的tfidf、word2vec、PageRank，
 这个比赛存在leak问题：一个query如果频繁出现，很有可能是同一个query，所以需要在leak上做文章。https://zhuanlan.zhihu.com/p/35093355 。所以使用图论技术挖掘是很有意义的
 
-最后使用NEZHA预训练模型 和 BERT 预训练进行融合，得到90.8的成绩
+最后使用NEZHA预训练模型 和 BERT 预训练进行融合，得到90.972
+
+![image](https://user-images.githubusercontent.com/68730894/115521383-af63bd00-a2bd-11eb-98cf-c17af1def21c.png)
+
 
