@@ -27,16 +27,19 @@ BERT的动态融合作为模型embedding的成绩会优于BERT最后一层向量
 
 
 ### 模型内部结构 Pooling
-* 使用残差网络解决BERT下游任务模型退化问题
+* 使用残差网络解决BERT12个隐藏层喂给BiLSTM时，模型发生退化问题
+我们将BERT的12个隐藏层喂给BiLSTM，即：BERT -> BiLSTM -> Average Pooling的技术路线。实际上，作者在训练的过程中发现，增加LSTM之后，模型发生退化问题。因此作者开发了残差网络，以跳过BiLSTM，让模型自己选择跳不跳过BiLSTM。
 
-下游任务使用LSTM/GRU/Transformer(3选1) 等结构对 BERT动态融合结果 进行特征提取时，神经网络发生退化问题，模型没有欠拟合。因此我模拟ResNet中的残差结构，对LSTM/GRU/Transformer进行短接
-。由于使用残差网络，模型参数量下降了200-300个。
+![image](https://user-images.githubusercontent.com/68730894/115556000-be109b00-a2e2-11eb-91a6-929d151f4e1c.png)
+
+
+作者还提供更为丰富的模型替换LSTM，比如：GRU、Transformer、CNN、RTransformer(4选1) 等结构。由于使用残差网络，残差网络是加法，时空复杂度为O(1)，参数量不变。
 
 ![image](https://user-images.githubusercontent.com/68730894/115149184-88c33d80-a095-11eb-94be-fdefcb3f6d6d.png)
 
 出现退化原因可能是：BERT的12层向量融合完成很好的提取了特征，这种情况复杂的模型反而效果会减弱。这在推荐系统中很常见，特征工程之后用个逻辑回归LR就能解决问题，可能对于LR来说，它只需要发挥自己的记忆能力，把特征工程整理出来的情况都记录在自己的评分卡中，辅以查表和相法就可完成任务。
 
-** 为了解决维度不一致影响残差网络使用率低的问题，作者开发了不受维度限制的残差模块。 **
+** 顺着这一逻辑往下走，作者开发了不受维度限制的残差模块，希望解决维度不一致影响残差网络使用率低的问题。因为残差网络真的是Pooling神奇，时空复杂度不变，且能保证效果不退化。 **
 
 LSTM的残差连接
 ```python
@@ -56,11 +59,13 @@ self.bilstm = ResidualWrapper4RNN(nn.Sequential(
 result = self.bilstm(bert_ouput)
 ```
 
-原理是：回到ResNet的核心，非线性激活函数的存在导致特征变化不可逆，因此造成模型退化的根本原因是非线性激活函数。因此F(x)= f(x) + x 可以理解为f(x)为非线性特征，x为线性特征，
+原理是：回到ResNet的核心，非线性激活函数的存在导致特征变化不可逆，因此造成模型退化的根本原因是非线性激活函数。因此F(x)= f(x) + x 可以理解为f(x)为非线性特征，x为线性特征。作者开发的不受维度限制的残差网络数学公式是： 
+
+F(x)= f(x) + wx 
 
 ![image](https://user-images.githubusercontent.com/68730894/115149195-9678c300-a095-11eb-8a53-e005612c6e7e.png)
 
-该残差模块不受维度相等的条件限制
+该残差模块不受维度相等的条件限制，w的作用是维度变换，经过w的变换后，特征依然是线性的。
 
 时空复杂度为0的写法：遇到维度不相等，可以直接用`nn.Linear(), tf.keras.layers.Dense()`让维度一致。然后再对位相加即可。
 
@@ -88,6 +93,19 @@ class_loss = nn.CrossEntropyLoss()(classifier_logits, cls_label)# weight中设�
 class_loss = 0.8 * bert_loss + 0.2 * class_loss
 outputs = class_loss
 ```
+
+* 为Attention矩阵增加残差，在MultiAttention那里增加残差网络
+
+![image](https://user-images.githubusercontent.com/68730894/115557370-3c217180-a2e4-11eb-8356-b818785630d2.png)
+
+增加残差网络后：
+
+![image](https://user-images.githubusercontent.com/68730894/115557436-49d6f700-a2e4-11eb-8f0b-eb9f2e83c2a1.png)
+
+这也就是Google新论文RealFormer的核心，论文地址：https://arxiv.org/abs/2012.11747v1
+
+![image](https://user-images.githubusercontent.com/68730894/115557541-6115e480-a2e4-11eb-9db6-ef9580e2bd26.png)
+
 
 运行方案顺序
 * preprocess/preprocess.py
