@@ -39,7 +39,8 @@ BERT的动态融合作为模型embedding的成绩会优于BERT最后一层向量
 
 出现退化原因可能是：BERT的12层向量融合完成很好的提取了特征，这种情况复杂的模型反而效果会减弱。这在推荐系统中很常见，特征工程之后用个逻辑回归LR就能解决问题，可能对于LR来说，它只需要发挥自己的记忆能力，把特征工程整理出来的情况都记录在自己的评分卡中，辅以查表和相法就可完成任务。
 
-** 顺着这一逻辑往下走，作者开发了不受维度限制的残差模块，希望解决维度不一致影响残差网络使用率低的问题。因为残差网络真的是Pooling神奇，时空复杂度不变，且能保证效果不退化。 **
+* 开发不受维度限制的残差模型
+顺着这一逻辑往下走，作者开发了不受维度限制的残差模块，希望解决维度不一致影响残差网络使用率低的问题。因为残差网络真的是Pooling神奇，时空复杂度不变，且能保证效果不退化。
 
 LSTM的残差连接
 ```python
@@ -52,18 +53,20 @@ class ResidualWrapper4RNN(nn.Module):
         return inputs + delta
 
 self.bilstm = ResidualWrapper4RNN(nn.Sequential(
-            BiLSTM(self.num_labels, embedding_size=config.hidden_size, hidden_size=params.lstm_hidden,
-                             num_layers=params.num_layers, dropout=params.drop_prob, with_ln=True)
+            nn.BiLSTM(config.hidden_size, params.lstm_hidden,
+                             num_layers=params.num_layers, dropout=params.drop_prob, batch_first=True, bidirectional=True)
                              ))
 
 result = self.bilstm(bert_ouput)
 ```
 
-原理是：回到ResNet的核心，非线性激活函数的存在导致特征变化不可逆，因此造成模型退化的根本原因是非线性激活函数。因此F(x)= f(x) + x 可以理解为f(x)为非线性特征，x为线性特征。作者开发的不受维度限制的残差网络数学公式是： 
-
-F(x)= f(x) + wx 
+原理是：回到ResNet的核心，非线性激活函数的存在导致特征变化不可逆，因此造成模型退化的根本原因是非线性激活函数。因此F(x)= f(x) + x 可以理解为f(x)为非线性特征，x为线性特征。
 
 ![image](https://user-images.githubusercontent.com/68730894/115149195-9678c300-a095-11eb-8a53-e005612c6e7e.png)
+
+作者开发的不受维度限制的残差网络数学公式是： 
+
+F(x)= f(x) + wx 
 
 该残差模块不受维度相等的条件限制，w的作用是维度变换，经过w的变换后，特征依然是线性的。
 
