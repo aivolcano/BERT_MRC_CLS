@@ -39,6 +39,10 @@ for item in tr4s.get_key_sentences(num=self.sentence_num): # sentence_num是生�
 
 # 召回top-3个关键句代表一篇长文本
 key_sentences = import_sentence[0][2:] + import_sentence[1][2:] + import_sentence[2][2:]
+if len(key_sentences) < 510:
+    return key_sentences
+else:
+    return key_sentences[:510]
 
 ```
 
