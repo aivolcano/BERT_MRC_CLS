@@ -27,17 +27,18 @@ NLP的长文本解决方案有（以BERT为例，BERT最长只能输入512个字
 * 召回算法：从长文本中召回top-k个关键句。
 
 ```python 
-tr4s = TextRank4Sentence().analyze(text=self.text, lower=True, source='all_filters')
+tr4s = TextRank4Sentence().analyze(text=text, lower=True, source='all_filters')
 # print('摘要：')
 # 重要性较高的3个句子
+import_sentence = []
 for item in tr4s.get_key_sentences(num=self.sentence_num): # sentence_num是生成关键句的个数
     # index是语句在文本中位置，weight表示权重
     # print('item.index, item.weight, item.sentence',item.index, item.weight, item.sentence)
-    # self.import_sentence.append(str(item.index) + ' ' +item.sentence)
-    self.import_sentence.append(item.sentence)
+    # import_sentence.append(str(item.index) + ' ' +item.sentence)
+    import_sentence.append(item.sentence)
 
 # 召回top-3个关键句代表一篇长文本
-text4bert = readingNews1.title + readingNews1.import_sentence[0][2:] + readingNews1.import_sentence[1][2:] + readingNews1.import_sentence[2][2:]
+key_sentences = import_sentence[0][2:] + import_sentence[1][2:] + import_sentence[2][2:]
 
 ```
 
