@@ -110,10 +110,10 @@ def key_text(text):
     # 核心内容是 标题 + top-3文本本体关键句
     key_sentences = import_sentence[0][2:] + import_sentence[1][2:] + import_sentence[2][2:]
     # 过长文本截断
-    if len(key_sentences) <= 512:
+    if len(key_sentences) <= 510:
         return key_sentences
     else:
-        return key_sentences[:512]
+        return key_sentences[:510]
 
 train_df['sentence'] = train_df['text'].apply(key_text)
 dev_df['sentence'] = dev_df['text'].apply(key_text)
