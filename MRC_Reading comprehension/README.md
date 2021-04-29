@@ -222,11 +222,11 @@ bm25 是一种用来评价搜索词和文档之间相关性的算法，它是一
 * query中每个单词t与文档的d之间相关性
 * 单词t与query之间的相似性
 * 每个单词的权重
-其中 Q 表示一条query， q_i 表示query中的单词。d表示某个搜索文档。
 
 BM25的一般公式
 ![image](https://user-images.githubusercontent.com/68730894/116523008-596bc680-a908-11eb-8211-b4e4ac1edb5d.png)
 
+其中 Q 表示一条query， q_i 表示query中的单词。d表示某个搜索文档。
 
 W_i 表示单词权重，这里其实就是IDF
 
