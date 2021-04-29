@@ -209,9 +209,11 @@ BM25是基于TFIDF算法的改进
 TFIDF：
 
 词频 (term frequency, TF) 指的是某一个给定的词语在该文件中出现的次数。
+
 ![tf](https://user-images.githubusercontent.com/68730894/116521169-33452700-a906-11eb-8392-87acbb2936e1.png)
 
 逆向文件频率 (inverse document frequency, IDF) IDF的主要思想是：如果包含词条t的文档越少, IDF越大，则说明词条具有很好的类别区分能力。
+
 ![idf](https://user-images.githubusercontent.com/68730894/116521185-3809db00-a906-11eb-81f2-9e09ffc144bf.png)
 
 
@@ -222,7 +224,8 @@ bm25 是一种用来评价搜索词和文档之间相关性的算法，它是一
 * 每个单词的权重
 其中 Q 表示一条query， q_i 表示query中的单词。d表示某个搜索文档。
 
-BM25的一般公式![image](https://user-images.githubusercontent.com/68730894/116523008-596bc680-a908-11eb-8211-b4e4ac1edb5d.png)
+BM25的一般公式
+![image](https://user-images.githubusercontent.com/68730894/116523008-596bc680-a908-11eb-8211-b4e4ac1edb5d.png)
 
 
 W_i 表示单词权重，这里其实就是IDF
