@@ -228,6 +228,7 @@ BM25的一般公式
 
 其中 Q 表示一条query， q_i 表示query中的单词。d表示某个搜索文档。
 
+### 每个单词的权重
 W_i 表示单词权重，这里其实就是IDF
 
 ![image](https://user-images.githubusercontent.com/68730894/116522930-4822ba00-a908-11eb-9621-7b00bd762b61.png)
