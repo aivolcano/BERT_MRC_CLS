@@ -204,6 +204,49 @@ self.bilstm = ResidualWrapper4RNN(nn.Sequential(
 result = self.bilstm(bert_ouput)
 ```
 
+## BM25算法原理
+BM25是基于TFIDF算法的改进
+TFIDF：
+
+词频 (term frequency, TF) 指的是某一个给定的词语在该文件中出现的次数。
+![tf](https://user-images.githubusercontent.com/68730894/116521169-33452700-a906-11eb-8392-87acbb2936e1.png)
+
+逆向文件频率 (inverse document frequency, IDF) IDF的主要思想是：如果包含词条t的文档越少, IDF越大，则说明词条具有很好的类别区分能力。
+![idf](https://user-images.githubusercontent.com/68730894/116521185-3809db00-a906-11eb-81f2-9e09ffc144bf.png)
+
+
+bm25 是一种用来评价搜索词和文档之间相关性的算法，它是一种基于概率检索模型提出的算法。简单来说，我们有一个query和一批文档Ds，现在要计算query和每篇文档D之间的相关性分数，我们的做法是，先对query进行切分，得到单词$q_i$，然后单词的分数由3部分组成：
+
+* query中每个单词t与文档的d之间相关性
+* 单词t与query之间的相似性
+* 每个单词的权重
+其中 Q 表示一条query， q_i 表示query中的单词。d表示某个搜索文档。
+
+BM25的一般公式![image](https://user-images.githubusercontent.com/68730894/116523008-596bc680-a908-11eb-8211-b4e4ac1edb5d.png)
+
+
+W_i 表示单词权重，这里其实就是IDF
+
+![image](https://user-images.githubusercontent.com/68730894/116522930-4822ba00-a908-11eb-9621-7b00bd762b61.png)
+
+
+其中N表示索引中全部文档数，$df_i$为包含了$q_i$的文档的个数。依据IDF的作用，对于某个$q_i$，包含$q_i$的文档数越多，说明$q_i$重要性越小，或者区分度越低，IDF越小，因此IDF可以用来刻画$q_i$与文档的相似性。
+
+### 单词与文档的相关性
+BM25的设计依据一个重要的发现：词频和相关性之间的关系是非线性的，也就是说，每个词对于文档的相关性分数不会超过一个特定的阈值，当词出现的次数达到一个阈值后，其影响就不在线性增加了，而这个阈值会跟文档本身有关。因此，在刻画单词与文档相似性时，BM25是这样设计的：
+
+![image](https://user-images.githubusercontent.com/68730894/116522687-0db91d00-a908-11eb-99b5-257b577d43dd.png)
+
+其中，$tf_{td}$是单词t在文档d中的词频，$L_d$是文档d的长度，$L_{ave}$是所有文档的平均长度，变量$k_1$是一个正的参数，用来标准化文章词频的范围，当$k_1=0$，就是一个二元模型（binary model）（没有词频），一个更大的值对应使用更原始的词频信息。b是另一个可调参数（$0<b<1$），他是用决定使用文档长度来表示信息量的范围：当b为1，是完全使用文档长度来权衡词的权重，当b为0表示不使用文档长度。
+
+### 单词与query的相关性
+当query很长时，我们还需要刻画单词与query的之间的权重。对于短的query，这一项不是必须的。
+
+![image](https://user-images.githubusercontent.com/68730894/116522766-232e4700-a908-11eb-8716-950863a4454f.png)
+
+这里$tf_{tq}$表示单词t在query中的词频，$k_3$是一个可调正参数，来矫正query中的词频范围。
+
+
 
 
 运行方案顺序
