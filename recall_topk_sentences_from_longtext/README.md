@@ -8,11 +8,7 @@
 使用TextRank算法召回长文本top-k个关键句
 * Step1：每个句子作为图中的节点
 * Step2：如果两个句子相似，则节点之间存在一条无向有权边
-* Step3：相似度 = 同时出现在两个句子中的单词的个数 / 句子中单词个数求对数之和（（分母使用对数可以降低长句在相似度计算上的优势）
-
-![image](https://user-images.githubusercontent.com/68730894/115322192-0e3f0e80-a1b8-11eb-9919-a2bd6b5a5688.png)
-
-TextRank中，windows=3，意味着前后3个句子作为顶点，两两使用边连接起来，表示句子间的关系强度。
+    * 相似度 = 同时出现在两个句子中的单词的个数 / 句子中单词个数求对数之和（（分母使用对数可以降低长句在相似度计算上的优势）
 
 ![image](https://user-images.githubusercontent.com/68730894/115322208-18f9a380-a1b8-11eb-9ece-5f84c22edf15.png)
 
