@@ -28,7 +28,7 @@ BERT的动态融合作为模型embedding的成绩会优于BERT最后一层向量
 
 ### 模型内部结构 Pooling
 * 使用残差网络解决BERT12个隐藏层喂给BiLSTM时，模型发生退化问题
-我们将BERT的12个隐藏层喂给BiLSTM，即：BERT -> BiLSTM -> Average Pooling的技术路线。实际上，作者在训练的过程中发现，增加LSTM之后，模型发生退化问题。因此作者开发了残差网络，让模型自己选择要不要跳过BiLSTM。
+我们将BERT的12个隐藏层喂给BiLSTM，即：BERT -> BiLSTM -> Average Pooling的技术路线。实际上，作者在训练的过程中发现，增加LSTM之后，模型发生退化问题。因此我们开发了残差网络，让模型自己选择要不要跳过BiLSTM。
 
 ![image](https://user-images.githubusercontent.com/68730894/115556000-be109b00-a2e2-11eb-91a6-929d151f4e1c.png)
 
