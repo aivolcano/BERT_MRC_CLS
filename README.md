@@ -76,6 +76,12 @@ F(x)= f(x) + wx
 
 ![image](https://user-images.githubusercontent.com/68730894/115149220-b0b2a100-a095-11eb-9dea-f38c5089964b.png)
 
+### BERT作为特征提取器可能存在的问题
+上述模型中，BERT的参数是不参与模型更新的，虽然我们设置了学习率，但是我们只使用了BERT的输出向量(batch_size, seq_len, embedding_dim)，梯度无法传导到BERT中，原因是BERT 是基于Transformer Encoder完成的，在Transformer中 Decoder 模块的梯度传导可以有交叉信息熵算出来，由于 Decoder 中涉及 Encoder-Decoder Self-Attention，该注意力机制中  q 来自encoder ，k 和 v 来自decoder，随着decoder的更新，decoder中的注意力矩阵完成参数更新，该注意力矩阵中有来自encoder的q，q的更新带动encoder中的注意力矩阵更新，最终实现整个transformer的参数更新。
+
+解决方案：为BERT增加辅助损失函数。
+
+BERT的下游结构我们下接了BiLSTM
 
 ### 可改进的点
 BERT模型动态融合需要BERT预训练模型已经很完美，因此可以使用我们该任务的语料喂给开源的预训练模型再训练20个epoch。
